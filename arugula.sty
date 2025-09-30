@@ -1,0 +1,62 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{arugula}[2025/09/29 v0.1 arugula theme]
+
+\RequirePackage{xcolor}
+\RequirePackage{geometry}
+\RequirePackage{utopia}
+
+
+\setlength{\parindent}{0pt}
+
+\geometry{letterpaper,
+  top=1in,
+  bottom=1in,
+  left=0.75in,
+  right=0.75in
+}
+
+\RequirePackage[most]{tcolorbox}
+\usetikzlibrary{backgrounds}
+
+\makeatletter
+\renewcommand{\@maketitle}{
+    \LARGE\@title\par
+    \vspace{0.5em}
+    \large\textbf{\@author} $\mid$ \@date
+    \vspace{0.5em}
+}
+\makeatother
+
+
+\newcommand*\accunderlay{%
+  % draw on TikZ background layer so it ends up behind frame/interior
+  \begin{scope}[on background layer]
+    \path[rounded corners=2mm,
+          fill=black, draw=black, line width=.6pt]
+      ([xshift=2mm,yshift=-1mm]frame.south west) rectangle
+      ([xshift=2mm,yshift=-1mm]frame.north east);
+  \end{scope}%
+}
+
+\newtcolorbox{accentbox}[1][]{%
+  enhanced, breakable,
+  colback=white, colframe=black, boxrule=.6pt, arc=2mm,
+  coltitle=black,
+  title=#1,
+  title filled,              % ensure title sits on the front plate
+  title style={font=\bfseries,color=orange, draw=orange},
+  % draw accent beneath frame/interior using overlay on background layer
+  overlay unbroken=\accunderlay,
+  overlay first=\accunderlay,
+  overlay middle=\accunderlay,
+  overlay last=\accunderlay,
+}
+
+
+
+
+
+
+
+
+\endinput
