@@ -1,10 +1,156 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{arugula}[2025/09/29 v0.1 arugula theme]
 
+%-----Aesthetic Packages-----
 \RequirePackage{xcolor}
 \RequirePackage{geometry}
 \RequirePackage{utopia}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{titlesec}
 
+%-----Syntax Packages-----
+\RequirePackage{amsthm}
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amsfonts}
+\RequirePackage{etoolbox}
+\RequirePackage{../../pramble/pramble}
+
+%-----TikZ Packages-----
+\usetikzlibrary{backgrounds}
+
+%-----Predefined environments-----
+
+%-----tcboxes-----
+\newtcolorbox{sectionbox}{%
+  blank, enhanced,
+  borderline west={2pt}{0pt}{primary},
+  boxsep=5pt, % change this to make the box taller
+  before=\vspace{0.5em},
+  after=\vspace{-1em},
+  left=0.5em, right=0pt, top=0pt, bottom=0pt,
+}
+
+\newtcolorbox{subsectionbox}{%
+  blank, enhanced,
+  borderline west={2pt}{0pt}{secondary},
+  boxsep=5pt, % change this to make the box taller
+  before=\vspace{0.5em},
+  after=\vspace{0.5em},
+  left=0.5em, right=0pt, top=0pt, bottom=0pt,
+}
+
+\newcommand*\accunderlay{%
+  % draw on TikZ background layer so it ends up behind frame/interior
+  \begin{scope}[on background layer]
+    \path[rounded corners=\arugula@boxcorners,
+          fill=black, draw=black, line width=.6pt]
+      ([xshift=2mm,yshift=-1mm]frame.south west) rectangle
+      ([xshift=2mm,yshift=-1mm]frame.north east);
+  \end{scope}%
+}
+
+\newtcolorbox{accentbox}[1][]{%
+  enhanced,
+  colback=white, colframe=black, boxrule=.6pt, arc=\arugula@boxcorners,
+  coltitle=black, fonttitle=\scshape\bfseries, lefttitle=1pt, toptitle=2pt,
+  title=#1,
+  title filled,              % ensure title sits on the front plate
+  title style={color=primary, draw=primary},
+  % draw accent beneath frame/interior using overlay on background layer
+  overlay unbroken=\accunderlay,
+  overlay first=\accunderlay,
+  overlay middle=\accunderlay,
+  overlay last=\accunderlay,
+}
+
+\newtcolorbox{envbox}[1][]{%
+    blank, enhanced,
+    % Option 1: borderline ``shadow''
+    %borderline south={1pt}{0pt}{tertiary},
+    %borderline east={2pt}{0pt}{tertiary},
+    % Option 2: line at left
+    borderline west={2pt}{0pt}{tertiary},
+    boxsep=10pt, % change this to make the box taller
+    before=\vspace{0.5em},
+    after=\vspace{0.5em},
+    left=0em, right=0pt, top=0pt, bottom=0pt,
+}
+
+%-----Customized title, section, subsection-----
+\makeatletter
+
+\renewcommand{\@maketitle}{
+    \LARGE\@title\par
+    \vspace{0.5em}
+    \large\textbf{\@author} $\mid$ \@date
+    \vspace{0.5em}
+}
+
+
+% -- Optional section subtitle API --
+% Usage: \sectionsubtitle{<text>} right before \section{...}
+\newcommand*{\arugula@section@subtitle}{}
+\newcommand*{\sectionsubtitle}[1]{\gdef\arugula@section@subtitle{#1}}
+
+% One-argument formatter for titlesec (avoids # handling inside its macro)
+\newcommand{\arugula@sectionformatter}[1]{%
+  \begin{sectionbox}% wrap title + optional subtitle
+    #1% the title text
+    \ifdefempty{\arugula@section@subtitle}{}{\par\vspace{0.5ex}\large\mdseries\textbf{Today: }\arugula@section@subtitle.}%
+  \end{sectionbox}%
+  \gdef\arugula@section@subtitle{}% reset for next section
+}
+
+\titleformat{\section}[block]
+  {\Large\bfseries}
+  {\thesection}
+  {0.75em}
+  {\arugula@sectionformatter}
+
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{\subsectionbox}
+\titlespacing*{\subsection}{\arugula@subsectionindent}{0ex}{0ex}
+
+
+%-----Customized environments-----
+
+\renewenvironment{proof}[1][\proofname]{\par
+  % Inline-QED proof environment: puts the box immediately after the last word
+  \normalfont \topsep6\p@\@plus6\p@\relax
+  \trivlist
+  \item[\hskip\labelsep\itshape #1\@addpunct{.}]\ignorespaces
+}{%
+  % Append the QED symbol inline (no flush-right box)
+  \unskip\nobreak\hspace{.5em}\qedsymbol\endtrivlist\@endpefalse
+}
+
+% Wrap theorem-like environments in envbox safely (no internal macro hooks)
+\newcommand{\arugula@wrapenv}[1]{%
+  \AtBeginEnvironment{#1}{\begin{envbox}}%
+  \AtEndEnvironment{#1}{\end{envbox}}%
+}
+
+\forcsvlist{\arugula@wrapenv}{
+  definition, definitions, definition*, definitions*,
+  theorem, theorems, theorem*, theorems*,
+  lemma, lemmas, lemma*, lemmas*,
+  proposition, propositions, proposition*, propositions*,
+  corollary, corollaries, corollary*, corollaries*,
+  conjecture, conjectures, conjecture*, conjectures*,
+  example, examples, example*, examples*,
+  remark, remarks, remark*, remarks*,
+  question, questions, question*, questions*,
+  fact, facts, fact*, facts*,
+  keyidea, keyideas, keyidea*, keyideas*}
+
+\newenvironment{activity}[1][]{%
+  \begin{accentbox}[Activity: \textnormal{#1.}]
+}{
+  \end{accentbox}
+  \vspace{0.5em}
+}
+
+%-----Parameters-----
 
 \setlength{\parindent}{0pt}
 
@@ -14,49 +160,23 @@
   left=0.75in,
   right=0.75in
 }
+\newcommand{\arugula@subsectionindent}{15pt}
+\newcommand{\arugula@boxcorners}{1mm}
 
-\RequirePackage[most]{tcolorbox}
-\usetikzlibrary{backgrounds}
 
-\makeatletter
-\renewcommand{\@maketitle}{
-    \LARGE\@title\par
-    \vspace{0.5em}
-    \large\textbf{\@author} $\mid$ \@date
-    \vspace{0.5em}
-}
+%-----Colors-----
+
+\definecolor{orange}{RGB}{255,128,0}%
+\definecolor{blue}{RGB}{0,0,255}%
+\definecolor{black}{RGB}{0,0,0}%
+\definecolor{chartreuse}{RGB}{127,255,0}%
+
+
+\colorlet{primary}{orange}%
+\colorlet{secondary}{blue}%
+\colorlet{tertiary}{black}%
+\colorlet{accent}{chartreuse}%
+
+
 \makeatother
-
-
-\newcommand*\accunderlay{%
-  % draw on TikZ background layer so it ends up behind frame/interior
-  \begin{scope}[on background layer]
-    \path[rounded corners=2mm,
-          fill=black, draw=black, line width=.6pt]
-      ([xshift=2mm,yshift=-1mm]frame.south west) rectangle
-      ([xshift=2mm,yshift=-1mm]frame.north east);
-  \end{scope}%
-}
-
-\newtcolorbox{accentbox}[1][]{%
-  enhanced, breakable,
-  colback=white, colframe=black, boxrule=.6pt, arc=2mm,
-  coltitle=black,
-  title=#1,
-  title filled,              % ensure title sits on the front plate
-  title style={font=\bfseries,color=orange, draw=orange},
-  % draw accent beneath frame/interior using overlay on background layer
-  overlay unbroken=\accunderlay,
-  overlay first=\accunderlay,
-  overlay middle=\accunderlay,
-  overlay last=\accunderlay,
-}
-
-
-
-
-
-
-
-
 \endinput
